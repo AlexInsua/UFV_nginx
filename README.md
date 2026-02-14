@@ -73,7 +73,7 @@ La solución está compuesta por:
 ```
 
 
-
+![Diagrama de Arquitectura](images/diagram.png)
 ------------------------------------------------------------------------
 
 # 3. Red Docker
