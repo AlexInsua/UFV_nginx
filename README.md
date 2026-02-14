@@ -107,7 +107,7 @@ Variables de conexión:
 
 DB_HOST=academico-db\
 DB_USER=backend\
-DB_PASSWORD=\*\*\*\*\*\*\*\*\
+DB_PASSWORD=ContraseñaSegura123\
 DB_NAME=academico\
 PORT=3001
 
