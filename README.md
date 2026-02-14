@@ -41,8 +41,8 @@ La solución está compuesta por:
            ┌────────────────────────┼───────────────────────┐
            │                        │                       │
  ┌─────────┴───────┐     ┌──────────┴──────┐      ┌─────────┴───────┐
- │ profesores_     │     │ alumnos_        │      │ practicas_      │
- │ cluster         │     │ cluster         │      │ cluster         │
+ │   profesores_   │     │ alumnos_cluster │      │    practicas_   │
+ │   cluster       │     │                 │      │     cluster     │
  └┬────────┬───────┘     └┬────────┬───────┘      └┬────────┬───────┘
   │        │              │        │               │        │
   │        │              │        │               │        │
