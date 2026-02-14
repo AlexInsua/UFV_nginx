@@ -1,33 +1,169 @@
-# Proyecto Académico - Arquitectura de Red Única (V4)
+# Proyecto Académico -- Arquitectura Distribuida con Contenedores Docker
 
-Esta versión cumple estrictamente con los requisitos de arquitectura solicitados.
+## 1. Descripción General
 
-## Especificaciones Técnicas
+Este proyecto implementa una arquitectura distribuida basada en
+contenedores Docker, diseñada bajo criterios de:
 
-1.  **Red Única**: Todos los contenedores están en la red `academico-net`.
-2.  **Puerto 3001**: Todos los servicios de Node.js escuchan en el puerto 3001.
-3.  **Mapeo 1:1 Nginx-Node**:
-    - `profesores-nginx-1` -> `profesores-node-1:3001`
-    - `profesores-nginx-2` -> `profesores-node-2:3001`
-    - `alumnos-nginx-1` -> `alumnos-node-1:3001`
-    - `alumnos-nginx-2` -> `alumnos-node-2:3001`
-    - `practicas-nginx-1` -> `practicas-node-1:3001`
-    - `practicas-nginx-2` -> `practicas-node-2:3001`
-4.  **Balanceador Principal**:
-    - `upstream profesores_cluster`: Balancea entre `profesores-nginx-1` y `profesores-nginx-2`.
-    - `upstream alumnos_cluster`: Balancea entre `alumnos-nginx-1` y `alumnos-nginx-2`.
-    - `upstream practicas_cluster`: Balancea entre `practicas-nginx-1` y `practicas-nginx-2`.
+-   Separación de responsabilidades
+-   Alta disponibilidad
+-   Balanceo de carga multinivel
+-   Escalabilidad horizontal
+-   Red interna aislada
 
-## Funcionalidades
+La solución está compuesta por:
 
-- **CRUD Completo**: Gestión total de Asignaturas, Alumnos y Prácticas.
-- **Portal Central**: `index.html` con acceso a todos los servicios.
-- **Navegación**: Enlaces de retorno al inicio en todas las páginas.
-- **Alta Disponibilidad**: Balanceo de carga en dos niveles (L7 -> L7 -> App).
+-   1 Base de datos PostgreSQL
+-   3 microservicios Node.js (Profesores, Alumnos, Prácticas)
+-   2 réplicas por microservicio
+-   1 Nginx por cada réplica (mapeo 1:1)
+-   1 balanceador principal Nginx
+-   1 red interna común
 
-## Despliegue
+------------------------------------------------------------------------
 
-```bash
+# 2. Arquitectura General
+
+## 2.1 Esquema de Comunicaciones
+
+    Cliente → Balancer (Nginx:80)
+            → Cluster Servicio
+                → Nginx interno
+                    → Node.js:3001
+                        → PostgreSQL
+
+------------------------------------------------------------------------
+
+# 3. Red Docker
+
+Todos los contenedores pertenecen a la red:
+
+    academico-net
+
+Características:
+
+-   Tipo: bridge
+-   Comunicación interna por nombre de servicio
+-   Ningún contenedor Node expone puertos al host
+-   Solo el balanceador principal publica el puerto 80
+
+------------------------------------------------------------------------
+
+# 4. Base de Datos
+
+Servicio: academico-db\
+Imagen: postgres:15
+
+Características:
+
+-   Inicialización automática mediante init_db.sql
+-   Esquema: academico
+-   Usuario aplicación: backend
+-   Permisos completos sobre tablas y secuencias
+
+Variables de conexión:
+
+DB_HOST=academico-db\
+DB_USER=backend\
+DB_PASSWORD=\*\*\*\*\*\*\*\*\
+DB_NAME=academico\
+PORT=3001
+
+------------------------------------------------------------------------
+
+# 5. Microservicios
+
+Cada dominio funcional dispone de su propio servicio:
+
+  Servicio     Archivo         Función
+  ------------ --------------- ------------------------
+  Profesores   profesores.js   Gestión de asignaturas
+  Alumnos      alumnos.js      Gestión de alumnos
+  Prácticas    practicas.js    Gestión de prácticas
+
+Características:
+
+-   Node.js 22
+-   Puerto interno 3001
+-   Stateless
+-   CRUD completo
+
+------------------------------------------------------------------------
+
+# 6. Arquitectura de Balanceo
+
+## Nivel 1 -- Balanceador Principal
+
+Servicio: balancer
+
+Define 3 upstream:
+
+-   profesores_cluster
+-   alumnos_cluster
+-   practicas_cluster
+
+------------------------------------------------------------------------
+
+## Nivel 2 -- Balanceo Interno 1:1
+
+profesores-nginx-1 → profesores-node-1:3001\
+profesores-nginx-2 → profesores-node-2:3001
+
+alumnos-nginx-1 → alumnos-node-1:3001\
+alumnos-nginx-2 → alumnos-node-2:3001
+
+practicas-nginx-1 → practicas-node-1:3001\
+practicas-nginx-2 → practicas-node-2:3001
+
+------------------------------------------------------------------------
+
+# 7. Flujo de una Petición
+
+1.  Cliente accede a http://localhost\
+2.  Petición llega al balancer\
+3.  Se redirige al cluster correspondiente\
+4.  Nginx interno reenvía a Node\
+5.  Node consulta PostgreSQL\
+6.  Respuesta vuelve al cliente
+
+------------------------------------------------------------------------
+
+# 8. Alta Disponibilidad
+
+-   Caída de un Node → otro responde\
+-   Caída de un Nginx interno → balancer redirige\
+-   Escalabilidad horizontal posible
+
+Arquitectura: L7 → L7 → Aplicación
+
+------------------------------------------------------------------------
+
+# 9. Funcionalidades
+
+-   CRUD completo
+-   Relaciones N:M
+-   Integridad referencial
+-   Portal central index.html
+
+------------------------------------------------------------------------
+
+# 10. Despliegue
+
+## Construcción y arranque
+
 docker-compose up --build -d
-```
-Acceso en `http://localhost`.
+
+## Acceso
+
+http://localhost
+
+------------------------------------------------------------------------
+
+# 11. Conclusión
+
+Arquitectura basada en microservicios con:
+
+-   Contenedorización completa
+-   Balanceo jerárquico
+-   Alta disponibilidad
+-   Infraestructura reproducible
