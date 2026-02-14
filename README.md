@@ -200,12 +200,3 @@ docker-compose up --build -d
 http://localhost
 
 ------------------------------------------------------------------------
-
-# 11. Conclusión
-
-Arquitectura basada en microservicios con:
-
--   Contenedorización completa
--   Balanceo jerárquico
--   Alta disponibilidad
--   Infraestructura reproducible
