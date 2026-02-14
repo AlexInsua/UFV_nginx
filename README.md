@@ -1,47 +1,33 @@
-# Proyecto Académico - Arquitectura en AWS
+# Proyecto Académico - Arquitectura de Red Única (V4)
 
-Este proyecto contiene la estructura y el código para un sistema académico distribuido, diseñado para ser desplegado en AWS con una arquitectura de alta disponibilidad.
+Esta versión cumple estrictamente con los requisitos de arquitectura solicitados.
 
-## Estructura del Proyecto
+## Especificaciones Técnicas
 
-- `database/`: Contiene el script SQL (`schema.sql`) para inicializar la base de datos PostgreSQL.
-- `public/`: Archivos estáticos (CSS, Imágenes) que Nginx sirve directamente.
-- `nginx/`:
-  - `load_balancer/`: Configuración para el servidor Nginx que actúa como balanceador de carga.
-  - `web_server/`: Configuración para los servidores Nginx que actúan como proxies inversos y sirven los archivos estáticos.
-- `backend/`:
-  - `profesores/`: Lógica del backend para la gestión de profesores (genera HTML dinámico).
-  - `alumnos/`: Lógica del backend para la gestión de alumnos (genera HTML dinámico).
-  - `practicas/`: Lógica del backend para la gestión de prácticas.
+1.  **Red Única**: Todos los contenedores están en la red `academico-net`.
+2.  **Puerto 3001**: Todos los servicios de Node.js escuchan en el puerto 3001.
+3.  **Mapeo 1:1 Nginx-Node**:
+    - `profesores-nginx-1` -> `profesores-node-1:3001`
+    - `profesores-nginx-2` -> `profesores-node-2:3001`
+    - `alumnos-nginx-1` -> `alumnos-node-1:3001`
+    - `alumnos-nginx-2` -> `alumnos-node-2:3001`
+    - `practicas-nginx-1` -> `practicas-node-1:3001`
+    - `practicas-nginx-2` -> `practicas-node-2:3001`
+4.  **Balanceador Principal**:
+    - `upstream profesores_cluster`: Balancea entre `profesores-nginx-1` y `profesores-nginx-2`.
+    - `upstream alumnos_cluster`: Balancea entre `alumnos-nginx-1` y `alumnos-nginx-2`.
+    - `upstream practicas_cluster`: Balancea entre `practicas-nginx-1` y `practicas-nginx-2`.
 
-## Requisitos
+## Funcionalidades
 
-- Node.js y npm instalados.
-- Base de datos PostgreSQL (RDS recomendado).
-- Servidores Nginx para el balanceo de carga y proxy inverso.
+- **CRUD Completo**: Gestión total de Asignaturas, Alumnos y Prácticas.
+- **Portal Central**: `index.html` con acceso a todos los servicios.
+- **Navegación**: Enlaces de retorno al inicio en todas las páginas.
+- **Alta Disponibilidad**: Balanceo de carga en dos niveles (L7 -> L7 -> App).
 
-## Instalación del Backend
-
-En cada carpeta de backend (`profesores`, `alumnos`, `practicas`), puedes instalar las dependencias necesarias:
+## Despliegue
 
 ```bash
-npm install
+docker-compose up --build -d
 ```
-
-## Configuración
-
-Asegúrate de configurar la variable de entorno `DB_HOST` con la dirección de tu base de datos RDS, o edita directamente los archivos `index.js` con las credenciales correctas.
-
-## Arquitectura y Archivos Estáticos
-
-El sistema utiliza un balanceador de carga que distribuye el tráfico a diferentes clústeres de servidores según la ruta.
-
-### Servidor Web (Nginx) como Servidor de Estáticos
-En esta versión, Nginx en los Web Servers está configurado para:
-1.  **Servir archivos estáticos**: Las peticiones a `/static/` son gestionadas directamente por Nginx desde la carpeta `/var/www/public/`, lo que mejora el rendimiento al no sobrecargar a Node.js con archivos pesados como imágenes o CSS.
-2.  **Proxy Inverso**: Las peticiones dinámicas se pasan al servidor Node.js en el puerto 3000.
-
-### Rutas del Load Balancer
-- `/profesores/` -> Clúster de Profesores
-- `/alumnos/` -> Clúster de Alumnos
-- `/practicas/` -> Clúster de Prácticas
+Acceso en `http://localhost`.

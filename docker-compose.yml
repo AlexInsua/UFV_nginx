@@ -1,0 +1,170 @@
+services:
+  # ======================================
+  # Base de datos PostgreSQL
+  # ======================================
+  academico-db:
+    image: postgres:15
+    container_name: academico-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ContraseñaSegura123
+      POSTGRES_DB: academico
+    volumes:
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    networks:
+      - academico-net
+    restart: always
+
+  # ======================================
+  # Clúster de Profesores
+  # ======================================
+  profesores-node-1:
+    build: { context: ., dockerfile: Dockerfile.profesores }
+    container_name: profesores-node-1
+    command: node profesores.js
+    environment: &node-env
+      DB_HOST: academico-db
+      DB_USER: backend
+      DB_PASSWORD: ContraseñaSegura123
+      DB_NAME: academico
+      PORT: 3001
+    networks:
+      - academico-net
+    depends_on: [academico-db]
+
+  profesores-node-2:
+    build: { context: ., dockerfile: Dockerfile.profesores }
+    container_name: profesores-node-2
+    command: node profesores.js
+    environment: { <<: *node-env }
+    networks:
+      - academico-net
+    depends_on: [academico-db]
+
+  profesores-nginx-1:
+    image: nginx:alpine
+    container_name: profesores-nginx-1
+    volumes:
+      - ./nginx/webservers/profesores-1.conf:/etc/nginx/conf.d/default.conf
+      - ./public:/var/www/public
+    networks:
+      - academico-net
+    depends_on: [profesores-node-1]
+
+  profesores-nginx-2:
+    image: nginx:alpine
+    container_name: profesores-nginx-2
+    volumes:
+      - ./nginx/webservers/profesores-2.conf:/etc/nginx/conf.d/default.conf
+      - ./public:/var/www/public
+    networks:
+      - academico-net
+    depends_on: [profesores-node-2]
+
+  # ======================================
+  # Clúster de Alumnos
+  # ======================================
+  alumnos-node-1:
+    build: { context: ., dockerfile: Dockerfile.alumnos }
+    container_name: alumnos-node-1
+    command: node alumnos.js
+    environment: { <<: *node-env }
+    networks:
+      - academico-net
+    depends_on: [academico-db]
+
+  alumnos-node-2:
+    build: { context: ., dockerfile: Dockerfile.alumnos }
+    container_name: alumnos-node-2
+    command: node alumnos.js
+    environment: { <<: *node-env }
+    networks:
+      - academico-net
+    depends_on: [academico-db]
+
+  alumnos-nginx-1:
+    image: nginx:alpine
+    container_name: alumnos-nginx-1
+    volumes:
+      - ./nginx/webservers/alumnos-1.conf:/etc/nginx/conf.d/default.conf
+      - ./public:/var/www/public
+    networks:
+      - academico-net
+    depends_on: [alumnos-node-1]
+
+  alumnos-nginx-2:
+    image: nginx:alpine
+    container_name: alumnos-nginx-2
+    volumes:
+      - ./nginx/webservers/alumnos-2.conf:/etc/nginx/conf.d/default.conf
+      - ./public:/var/www/public
+    networks:
+      - academico-net
+    depends_on: [alumnos-node-2]
+
+  # ======================================
+  # Clúster de Prácticas
+  # ======================================
+  practicas-node-1:
+    build: { context: ., dockerfile: Dockerfile.practicas }
+    container_name: practicas-node-1
+    command: node practicas.js
+    environment: { <<: *node-env }
+    networks:
+      - academico-net
+    depends_on: [academico-db]
+
+  practicas-node-2:
+    build: { context: ., dockerfile: Dockerfile.practicas }
+    container_name: practicas-node-2
+    command: node practicas.js
+    environment: { <<: *node-env }
+    networks:
+      - academico-net
+    depends_on: [academico-db]
+
+  practicas-nginx-1:
+    image: nginx:alpine
+    container_name: practicas-nginx-1
+    volumes:
+      - ./nginx/webservers/practicas-1.conf:/etc/nginx/conf.d/default.conf
+      - ./public:/var/www/public
+    networks:
+      - academico-net
+    depends_on: [practicas-node-1]
+
+  practicas-nginx-2:
+    image: nginx:alpine
+    container_name: practicas-nginx-2
+    volumes:
+      - ./nginx/webservers/practicas-2.conf:/etc/nginx/conf.d/default.conf
+      - ./public:/var/www/public
+    networks:
+      - academico-net
+    depends_on: [practicas-node-2]
+
+  # ======================================
+  # Balanceador Principal
+  # ======================================
+  balancer:
+    image: nginx:alpine
+    container_name: balancer
+    volumes:
+      - ./nginx/balancer.conf:/etc/nginx/conf.d/default.conf
+      - ./public:/var/www/public
+    ports:
+      - "80:80"
+    networks:
+      - academico-net
+    depends_on:
+      - profesores-nginx-1
+      - profesores-nginx-2
+      - alumnos-nginx-1
+      - alumnos-nginx-2
+      - practicas-nginx-1
+      - practicas-nginx-2
+    restart: always
+
+networks:
+  academico-net:
+    driver: bridge
