@@ -149,6 +149,16 @@ Arquitectura: L7 → L7 → Aplicación
 
 docker-compose up --build -d
 
+# 11 Arranque / Parada
+
+## Arranque
+
+docker-compose -p ufv_nginx up -d
+
+## Parada
+
+docker-compose -p ufv_nginx down
+
 ## Acceso
 
 http://localhost
