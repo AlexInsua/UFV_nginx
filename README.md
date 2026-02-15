@@ -159,7 +159,7 @@ docker-compose -p ufv_nginx up -d
 
 docker-compose -p ufv_nginx down
 
-## 11. Acceso
+# 12. Acceso
 
 http://localhost
 
