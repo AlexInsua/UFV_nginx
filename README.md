@@ -94,13 +94,13 @@ Servicio: balancer
 
 Define 3 upstream:
 
--   profesores_cluster → profesores-nginx-1:80\
+-   profesores_cluster → profesores-nginx-1:80
 -   profesores_cluster → profesores-nginx-2:80
 
--   alumnos_cluster → alumnos-nginx-1:80\
+-   alumnos_cluster → alumnos-nginx-1:80
 -   alumnos_cluster → alumnos-nginx-2:80
 
--   practicas_cluster → practicas-nginx-1:80\
+-   practicas_cluster → practicas-nginx-1:80
 -   practicas_cluster → practicas-nginx-2:80
 ------------------------------------------------------------------------
 
