@@ -159,8 +159,148 @@ docker-compose -p ufv_nginx up -d
 
 docker-compose -p ufv_nginx down
 
-# 12. Acceso
+# 12. Acceso a la web
 
 http://localhost
 
 ------------------------------------------------------------------------
+
+# 14. Disaster Recovery Plan (DRP) – Proyecto Académico Docker
+
+## 14.1 Objetivo
+
+Garantizar la continuidad del servicio protegiendo **solo los datos críticos** de PostgreSQL (`academico`).
+Los microservicios Node.js y Nginx son **stateless**, versionados en Git y se reconstruyen automáticamente.
+
+---
+
+## 14.2 Alcance
+
+- **Base de datos PostgreSQL** → datos críticos.  
+- **Microservicios Node.js y Nginx** → stateless, no requieren backup.  
+- **Contenido público (`./public`) y configuración Nginx** → versionados en Git, se restauran al levantar contenedores.
+
+---
+
+## 14.3 SLA DRP
+
+| Parámetro | Valor |
+|-----------|-------|
+| **RTO (Recovery Time Objective)** | 1 hora |
+| **RPO (Recovery Point Objective)** | 4 horas (máximo de datos perdidos desde último backup) |
+
+---
+
+## 14.4 Scripts de Backup y Restauración
+
+Los scripts se encuentran en la carpeta `DRP/` en la raíz del proyecto:
+
+| Script | Sistema | Función |
+|--------|--------|---------|
+| `DRP/backup_restore_linux.sh` | Linux/macOS | Backup y restauración de datos PostgreSQL |
+| `DRP/backup_restore_windows.ps1` | Windows PowerShell | Backup y restauración de datos PostgreSQL |
+
+### 14.4.1 Backup
+
+**Linux / macOS:**
+
+```bash
+cd DRP
+./backup_restore_linux.sh backup
+```
+
+**Windows PowerShell:**
+
+```powershell
+cd DRP
+.\backup_restore_windows.ps1 backup
+```
+
+- El script generará un archivo de backup `backup_YYYY-MM-DD_HH-MM.sql` con **solo los datos** (`-a`).  
+- Guardar este archivo fuera del host principal (NAS, unidad externa, nube).
+
+### 14.4.2 Restauración
+
+**Linux / macOS:**
+
+```bash
+cd DRP
+./backup_restore_linux.sh restore <archivo_backup.sql>
+```
+
+**Windows PowerShell:**
+
+```powershell
+cd DRP
+.\backup_restore_windows.ps1 restore <archivo_backup.sql>
+```
+
+- Solo se insertan los datos, sin recrear tablas ni esquemas, evitando conflictos.
+
+---
+
+## 14.5 Procedimiento de Recuperación DRP
+
+1. **Clonar el repositorio del proyecto y entrar en él:**
+
+```bash
+git clone https://<repo-url>.git
+cd <repo>
+```
+
+2. **Levantar la plataforma completa:**
+
+```bash
+docker-compose up -d --build
+```
+
+- Esto inicia microservicios, Nginx internos y balanceador principal.  
+- El contenedor de PostgreSQL estará disponible, aunque vacío si es un host nuevo.
+
+3. **Restaurar datos desde backup:**
+
+- Linux/macOS:  
+```bash
+DRP/backup_restore_linux.sh restore DRP/backup_YYYY-MM-DD_HH-MM.sql
+```
+
+- Windows PowerShell:  
+```powershell
+DRP\backup_restore_windows.ps1 restore DRP\backup_YYYY-MM-DD_HH-MM.sql
+```
+
+4. **Validación:**
+
+```bash
+docker exec -it academico-db psql -U backend -d academico -c "\dt"
+```
+
+- Acceder a la aplicación: `http://localhost`.  
+- Verificar que microservicios (`/profesores`, `/alumnos`, `/practicas`) funcionan y que los datos están correctos.
+
+---
+
+## 14.6 Procedimiento de Pruebas DRP
+
+1. Simular fallo del contenedor PostgreSQL.  
+2. Levantar contenedor vacío y restaurar datos con los scripts.  
+3. Medir **RTO** (≤1 hora) y **RPO** (≤4 horas).  
+4. Simular fallo de microservicios o Nginx y reconstruir contenedores:
+
+```bash
+docker-compose up -d <servicio>
+docker logs -f <servicio>
+```
+
+5. Documentar resultados de la prueba.
+
+---
+
+## 14.7 Notas Importantes
+
+- Solo se respalda **la información crítica**: los datos de PostgreSQL.  
+- Microservicios y Nginx son **stateless**, reconstruibles desde Docker/Git.  
+- Los scripts son **cross-platform**: Linux/macOS y Windows PowerShell.  
+- Mantener backups fuera del host principal para **fallos totales**.  
+- En DR completo: levantar contenedores con `docker-compose up -d` y luego ejecutar el restore.
+
