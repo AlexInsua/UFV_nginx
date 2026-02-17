@@ -112,12 +112,12 @@ profesores-nginx-2 → profesores-node-1:3001\
 profesores-nginx-2 → profesores-node-2:3001
 
 alumnos-nginx-1 → alumnos-node-1:3001\
-alumnos-nginx-1 → alumnos-node-1:3001\
+alumnos-nginx-1 → alumnos-node-2:3001\
 alumnos-nginx-2 → alumnos-node-1:3001\
 alumnos-nginx-2 → alumnos-node-2:3001
 
 practicas-nginx-1 → practicas-node-1:3001\
-practicas-nginx-1 → practicas-node-1:3001\
+practicas-nginx-1 → practicas-node-2:3001\
 practicas-nginx-2 → practicas-node-1:3001\
 practicas-nginx-2 → practicas-node-2:3001
 
