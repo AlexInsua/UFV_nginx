@@ -94,11 +94,13 @@ Servicio: balancer
 
 Define 3 upstream:
 
--   profesores_cluster → profesores-nginx-1:80
+-   profesores_cluster → profesores-nginx-1:80\
 -   profesores_cluster → profesores-nginx-2:80
--   alumnos_cluster → alumnos-nginx-1:80
+
+-   alumnos_cluster → alumnos-nginx-1:80\
 -   alumnos_cluster → alumnos-nginx-2:80
--   practicas_cluster → practicas-nginx-1:80
+
+-   practicas_cluster → practicas-nginx-1:80\
 -   practicas_cluster → practicas-nginx-2:80
 ------------------------------------------------------------------------
 
@@ -107,17 +109,17 @@ Define 3 upstream:
 profesores-nginx-1 → profesores-node-1:3001\
 profesores-nginx-1 → profesores-node-2:3001\
 profesores-nginx-2 → profesores-node-1:3001\
-profesores-nginx-2 → profesores-node-2:3001\
+profesores-nginx-2 → profesores-node-2:3001
 
 alumnos-nginx-1 → alumnos-node-1:3001\
 alumnos-nginx-1 → alumnos-node-1:3001\
 alumnos-nginx-2 → alumnos-node-1:3001\
-alumnos-nginx-2 → alumnos-node-2:3001\
+alumnos-nginx-2 → alumnos-node-2:3001
 
 practicas-nginx-1 → practicas-node-1:3001\
 practicas-nginx-1 → practicas-node-1:3001\
 practicas-nginx-2 → practicas-node-1:3001\
-practicas-nginx-2 → practicas-node-2:3001\
+practicas-nginx-2 → practicas-node-2:3001
 
 ------------------------------------------------------------------------
 
