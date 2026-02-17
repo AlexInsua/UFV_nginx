@@ -219,6 +219,13 @@ cd DRP
 - El script generará un archivo de backup `backup_YYYY-MM-DD_HH-MM.sql` con **solo los datos** (`-a`).  
 - Guardar este archivo fuera del host principal (NAS, unidad externa, nube).
 
+**Política de backups para cumplir con el DRP:**
+
+- Realizar backups automáticos cada 4 horas para cumplir con el RPO.
+- Mantener al menos 7 días de backups históricos.
+- Verificar semanalmente la integridad de los backups restaurando en un entorno de prueba.
+
+
 ### 14.4.2 Restauración
 
 **Linux / macOS:**
