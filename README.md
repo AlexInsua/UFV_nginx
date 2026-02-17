@@ -126,10 +126,10 @@ practicas-nginx-2 → practicas-node-2:3001
 # 7. Flujo de una Petición
 
 1.  Cliente accede a http://localhost\
-2.  Petición llega al balancer\
-3.  Se redirige al cluster correspondiente\
-4.  Nginx interno reenvía a cluster de Node\
-5.  Node consulta PostgreSQL\
+2.  Petición llega al balancer
+3.  Se redirige al cluster correspondiente
+4.  Nginx interno reenvía a cluster de Node
+5.  Node consulta PostgreSQL
 6.  Respuesta vuelve al cliente
 
 ------------------------------------------------------------------------
