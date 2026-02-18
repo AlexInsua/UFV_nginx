@@ -321,3 +321,4 @@ docker logs -f <servicio>
 - Mantener backups fuera del host principal para **fallos totales**.  
 - En DR completo: levantar contenedores con `docker-compose up -d` y luego ejecutar el restore.
 
+
